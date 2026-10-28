@@ -1,0 +1,44 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Allow Let's Encrypt ACME Challenge
+    RewriteRule ^\.well-known/acme-challenge/ - [L]
+
+    # Block access to sensitive files via Rewrite
+    RewriteRule ^.*\.env$ - [F,L]
+    RewriteRule ^.*\.sqlite$ - [F,L]
+    RewriteRule ^.*\.zip$ - [F,L]
+    RewriteRule ^.*\.log$ - [F,L]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Block direct access to PHP files except index.php
+    RewriteCond %{REQUEST_URI} !^/index\.php$
+    RewriteRule \.php$ - [F,L]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Restrict access to dotfiles (except .well-known)
+<FilesMatch "^\.(?!well-known)">
+    Require all denied
+</FilesMatch>
+
+# Restrict access to critical file extensions (Apache 2.4)
+<FilesMatch "\.(sqlite|zip|log|env)$">
+    Require all denied
+</FilesMatch>
